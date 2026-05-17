@@ -50,6 +50,10 @@ You can follow same procedure in the official  AWS document [Getting started wit
    --node-type m7i-flex.large \
 
 
+## For Windows ##
+# eksctl create cluster --name naresh --region ap-south-1 --nodegroup-name workers --node-type m7i-flex.large --nodes 2 --managed
+
+
 5. To delete the EKS clsuter 
    ```sh 
    eksctl delete cluster naresh --region ap-south-1
