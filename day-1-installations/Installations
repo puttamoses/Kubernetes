@@ -98,3 +98,64 @@ chmod +x ./kubectl  -----Make the kubectl binary executable
 sudo mv ./kubectl /usr/local/bin/kubectl  ----sudo mv ./kubectl /usr/local/bin/kubectl
 
 
+
+
+#--------------------------------Kops--------------
+# STEP-1: INSTALL kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+
+kubectl version --client
+
+
+# STEP-2: INSTALL kops
+curl -LO https://github.com/kubernetes/kops/releases/download/v1.34.0/kops-linux-amd64
+
+chmod +x kops-linux-amd64
+sudo mv kops-linux-amd64 /usr/local/bin/kops
+
+kops version
+
+
+# STEP-3: CONFIGURE PATH
+echo 'export PATH=$PATH:/usr/local/bin' >> ~/.bashrc
+source ~/.bashrc
+
+
+# STEP-4: USE EXISTING S3 BUCKET
+export KOPS_STATE_STORE=s3://bucket-from-import
+
+# SAVE VARIABLE PERMANENTLY
+echo 'export KOPS_STATE_STORE=s3://bucket-from-import' >> ~/.bashrc
+source ~/.bashrc
+
+
+# STEP-5: CREATE KOPS CLUSTER
+kops create cluster \
+  --name=moses.k8s.local \
+  --cloud=aws \
+  --zones=ap-south-1a \
+  --control-plane-count=1 \
+  --control-plane-size=c7i-flex.large \
+  --node-count=2 \
+  --node-size=c7i-flex.large
+
+
+# STEP-6: DEPLOY CLUSTER
+kops update cluster --name moses.k8s.local --yes --admin
+
+
+# STEP-7: VALIDATE CLUSTER
+kops validate cluster
+
+
+# STEP-8: CHECK NODES
+kubectl get nodes
+
+
+# STEP-9: CHECK ALL RESOURCES
+kubectl get all -A
+
+
