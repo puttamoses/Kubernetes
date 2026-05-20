@@ -1,20 +1,91 @@
+# ---------------------------------------------
+# STEP-1 : Create Docker Registry Secret
+# ---------------------------------------------
+
+kubectl create secret docker-registry dockerhub-secret \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username=puttamoses \
+  --docker-password=mypassword
+
+
+# ---------------------------------------------
+# STEP-2 : Check Secrets
+# ---------------------------------------------
+
+kubectl get secrets
+
+
+# Detailed information about secret
+kubectl describe secret dockerhub-secret
+
+
+# View complete YAML format
+kubectl get secret dockerhub-secret -o yaml
+
+
+# ---------------------------------------------
+# STEP-3 : Deployment File with imagePullSecrets
+# ---------------------------------------------
+
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: hotstar-deployment
+
 spec:
-  replicas: 1  # Number of desired replicas
+  replicas: 2
+
   selector:
     matchLabels:
       app: hotstar
+
   template:
     metadata:
       labels:
         app: hotstar
+
     spec:
+
+      # Kubernetes uses this secret
+      # to authenticate with Docker Hub
+      imagePullSecrets:
+      - name: dockerhub-secret
+
       containers:
       - name: hotstar
-        image: veeranarni/hotstar:latest #docker hub private registry
-        #image: 992382358200.dkr.ecr.ap-south-1.amazonaws.com/maventomcat:latest # ecr registry reference 
+
+        # Private Docker image
+        image: veeranarni/hotstar:latest
+
         ports:
-        - containerPort: 3000  # Port your application listens on
+        - containerPort: 3000
+
+
+# ---------------------------------------------
+# STEP-4 : Apply Deployment
+# ---------------------------------------------
+
+kubectl apply -f deployment.yaml
+
+
+# ---------------------------------------------
+# STEP-5 : Verify Pods
+# ---------------------------------------------
+
+kubectl get pods
+
+
+# Check detailed pod events/logs
+kubectl describe pod <pod-name>
+
+
+# ---------------------------------------------
+# Common Error
+# ---------------------------------------------
+
+# ImagePullBackOff means:
+# - wrong docker password
+# - wrong image name
+# - private repo access issue
+# - secret not attached properly
